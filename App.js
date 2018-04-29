@@ -14,8 +14,29 @@ import {
   Text,
 } from 'native-base';
 
-type Props = {};
-export default class App extends Component<Props> {
+import RepoList from './RepoList'
+
+export default class App extends Component<{}> {
+  state = {
+    search: '',
+    loading: false,
+    repositories: [],
+  };
+
+  fetchRepositories = async () => {
+    if (this.state.search.length > 0) {
+      this.setState({ loading: true });
+
+      const response = await fetch(`https://api.github.com/search/repositories?q=${this.state.search}`);
+      const repositories = await response.json();
+      
+      this.setState({
+        repositories: repositories.items,
+        loading: false,
+      });
+    }
+  };
+
   render() {
     return (
       <Container>
@@ -30,18 +51,23 @@ export default class App extends Component<Props> {
               <Icon active name='search' />
               <Input
                 placeholder="Buscar palavra chave"
-                //value={}
-                //onChangetext={}
+                value={this.state.search}
+                onChangeText={text => this.setState({ search: text })}
               />
             </Item>
           </Form>
           <Button 
             block 
             style={{ marginTop: 10 }} 
-            //onPress={}
+            onPress={this.fetchRepositories}
           >
             <Text>Buscar</Text>
           </Button>
+          { this.state.loading 
+            ? <Spinner color='#999' />
+            : <RepoList 
+                repositories={this.state.repositories}
+              /> }
         </Content>
       </Container>
     );
